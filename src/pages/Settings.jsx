@@ -3,14 +3,14 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Save, Building2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { useSettings, hexToRgbArray } from '../contexts/SettingsContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { useToast } from '../contexts/ToastContext';
 import BottomNav from '../components/BottomNav';
 
 const COLORS = ['#1e3a5f', '#c0392b', '#16a085', '#8e44ad', '#e67e22', '#2c3e50'];
 
 async function compressLogo(file) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const img = new window.Image();
@@ -23,8 +23,10 @@ async function compressLogo(file) {
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         resolve(canvas.toDataURL('image/png'));
       };
+      img.onerror = () => reject(new Error('Image invalide'));
       img.src = e.target.result;
     };
+    reader.onerror = () => reject(new Error('Lecture fichier échouée'));
     reader.readAsDataURL(file);
   });
 }
@@ -52,14 +54,20 @@ export default function Settings({ session }) {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       addToast({ message: 'Veuillez choisir un fichier image (PNG recommandé)', type: 'error' });
+      e.target.value = '';
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
       addToast({ message: 'Image trop lourde (max 2 Mo)', type: 'error' });
+      e.target.value = '';
       return;
     }
-    const base64 = await compressLogo(file);
-    set('company_logo_base64', base64);
+    try {
+      const base64 = await compressLogo(file);
+      set('company_logo_base64', base64);
+    } catch (err) {
+      addToast({ message: 'Impossible de charger cette image : ' + err.message, type: 'error' });
+    }
     e.target.value = '';
   }
 
