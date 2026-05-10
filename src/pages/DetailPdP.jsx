@@ -73,8 +73,13 @@ export default function DetailPdP({ session }) {
 
   const changeStatut = async (newStatut) => {
     setUpdatingStatut(true);
-    const { data } = await supabase.from('plans_prevention').update({ statut: newStatut }).eq('id', id).select().single();
+    const { data, error: err } = await supabase.from('plans_prevention').update({ statut: newStatut }).eq('id', id).select().single();
     setUpdatingStatut(false);
+    if (err) {
+      console.error('[DetailPdP] Erreur changement statut:', err);
+      addToast({ message: 'Erreur changement statut : ' + err.message, type: 'error' });
+      return;
+    }
     if (data) setPdp(data);
   };
 
@@ -151,9 +156,11 @@ export default function DetailPdP({ session }) {
       delete copy.id;
       const { data, error: err } = await supabase.from('plans_prevention').insert([copy]).select().single();
       if (err) throw err;
+      addToast({ message: 'Plan dupliqué avec succès', type: 'success' });
       navigate(`/pdp/${data.id}`);
     } catch (e) {
-      alert('Erreur duplication : ' + e.message);
+      console.error('[DetailPdP] Erreur duplication:', e);
+      addToast({ message: 'Erreur lors de la duplication : ' + e.message, type: 'error' });
     }
     setDuplicating(false);
   };
