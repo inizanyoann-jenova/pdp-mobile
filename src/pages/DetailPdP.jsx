@@ -6,6 +6,7 @@ import { exportPdP } from '../utils/exportPdf';
 import { getActionsForPlan, addAction, updateAction, deleteAction } from '../utils/actionsService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
+import { useToast } from '../contexts/ToastContext';
 import {
   ArrowLeft, MapPin, Building2, Calendar, FileText,
   CheckCircle2, Clock, Trash2, AlertTriangle, Download,
@@ -31,6 +32,7 @@ export default function DetailPdP({ session }) {
   const navigate = useNavigate();
   const { theme, isDark, toggle } = useTheme();
   const { settings } = useSettings();
+  const { addToast } = useToast();
   const [pdp, setPdp]               = useState(null);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState('');
@@ -60,7 +62,12 @@ export default function DetailPdP({ session }) {
   const handleDelete = async () => {
     if (!confirmDel) { setConfirmDel(true); return; }
     setDeleting(true);
-    await supabase.from('plans_prevention').delete().eq('id', id);
+    const { error } = await supabase.from('plans_prevention').delete().eq('id', id);
+    if (error) {
+      addToast({ message: 'Erreur lors de la suppression : ' + error.message, type: 'error' });
+      setDeleting(false);
+      return;
+    }
     navigate('/');
   };
 

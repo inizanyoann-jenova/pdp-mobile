@@ -217,7 +217,7 @@ export async function exportPdP(pdp, { returnBlob = false } = {}, settings = {})
 
     cat.questions.forEach(q => {
       const rep = reponses[q.id];
-      if (!rep || rep === 'oui') return;
+      if (rep !== 'non' && rep !== 'nsp') return;
       if (y + 10 > H - 20) { newPage(doc, W, H); y = 16; }
       const rowBg     = rep === 'non' ? [254, 226, 226] : [254, 243, 199];
       const rowBorder = rep === 'non' ? C.red : C.amber;
@@ -313,7 +313,7 @@ export async function exportPdP(pdp, { returnBlob = false } = {}, settings = {})
     const imgH = imgW * 0.65;
     let col = 0, rowY = y;
 
-    for (const photo of photosChantier) {
+    for (const [photoIndex, photo] of photosChantier.entries()) {
       if (col === 0 && rowY + imgH + 14 > H - 20) {
         newPage(doc, W, H); rowY = 16; col = 0;
       }
@@ -326,6 +326,7 @@ export async function exportPdP(pdp, { returnBlob = false } = {}, settings = {})
       } else if (photo.url) {
         try {
           const res  = await fetch(photo.url, { mode: 'cors' });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const blob = await res.blob();
           b64 = await new Promise(r => { const fr = new FileReader(); fr.onloadend = () => r(fr.result); fr.readAsDataURL(blob); });
         } catch (err) {
@@ -348,7 +349,7 @@ export async function exportPdP(pdp, { returnBlob = false } = {}, settings = {})
       }
 
       doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...C.text3);
-      doc.text((photo.name || `Photo ${photosChantier.indexOf(photo)+1}`).substring(0, 30), px, rowY + imgH + 5);
+      doc.text((photo.name || `Photo ${photoIndex + 1}`).substring(0, 30), px, rowY + imgH + 5);
       col++;
       if (col >= 2) { col = 0; rowY += imgH + 14; }
     }
