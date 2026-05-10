@@ -76,7 +76,8 @@ export default function NouveauPdP({ session, initialData, editId }) {
       for (const id of ids) {
         try {
           const draft = drafts[id];
-          const { error } = await supabase.from('plans_prevention').upsert(draft);
+          const { _savedAt, _offline, ...cleanDraft } = draft;
+          const { error } = await supabase.from('plans_prevention').upsert(cleanDraft);
           if (!error) {
             removeDraft(id);
             addToast({ message: 'Brouillon synchronisé avec succès', type: 'success' });
