@@ -187,7 +187,7 @@ export default function NouveauPdP({ session, initialData, editId }) {
           setSaved(true);
           setHasUnsavedChanges(false);
           addToast({ message: 'Plan sauvegardé localement (hors-ligne)', type: 'info' });
-          setTimeout(() => navigate(editId ? `/pdp/${editId}` : '/'), 1800);
+          setTimeout(() => navigate('/'), 1800);
           return;
         }
         console.error('[NouveauPdP] Erreur sauvegarde:', err);

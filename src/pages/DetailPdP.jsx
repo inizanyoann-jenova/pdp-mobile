@@ -81,6 +81,7 @@ export default function DetailPdP({ session }) {
       return;
     }
     if (data) setPdp(data);
+    addToast({ message: 'Statut mis à jour', type: 'success' });
   };
 
   const handleExport = async () => {

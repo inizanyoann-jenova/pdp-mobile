@@ -59,7 +59,7 @@ export default function ListePdP({ session }) {
       return;
     }
     setPdps(data || []);
-  }, []);
+  }, [addToast]);
 
   useEffect(() => { charger(); }, [charger]);
 
