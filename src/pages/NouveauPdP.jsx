@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { saveDraftOffline } from '../utils/offlineStorage';
+import { saveDraftOffline, getAllDrafts, removeDraft } from '../utils/offlineStorage';
 import { getTemplates, saveTemplate, deleteTemplate } from '../utils/templatesService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
@@ -66,6 +66,29 @@ export default function NouveauPdP({ session, initialData, editId }) {
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [hasUnsavedChanges]);
+
+  useEffect(() => {
+    async function syncOnReconnect() {
+      const drafts = getAllDrafts();
+      const ids = Object.keys(drafts);
+      if (ids.length === 0) return;
+      addToast({ message: `Connexion rétablie — synchronisation de ${ids.length} brouillon(s)...`, type: 'info' });
+      for (const id of ids) {
+        try {
+          const draft = drafts[id];
+          const { error } = await supabase.from('plans_prevention').upsert(draft);
+          if (!error) {
+            removeDraft(id);
+            addToast({ message: 'Brouillon synchronisé avec succès', type: 'success' });
+          }
+        } catch (err) {
+          console.error('[sync] Erreur synchro brouillon:', err);
+        }
+      }
+    }
+    window.addEventListener('online', syncOnReconnect);
+    return () => window.removeEventListener('online', syncOnReconnect);
+  }, [addToast]);
 
   const setField = (key, val) => { setForm(f => ({ ...f, [key]: val })); setHasUnsavedChanges(true); };
 
