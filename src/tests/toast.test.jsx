@@ -33,4 +33,23 @@ describe('ToastContext', () => {
     });
     expect(result.current.toasts).toHaveLength(3);
   });
+
+  it('auto-dismiss supprime le toast après la durée', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useToast(), { wrapper });
+    act(() => result.current.addToast({ message: 'Auto', type: 'info', duration: 2000 }));
+    expect(result.current.toasts).toHaveLength(1);
+    act(() => vi.advanceTimersByTime(2000));
+    expect(result.current.toasts).toHaveLength(0);
+    vi.useRealTimers();
+  });
+
+  it('duration=0 ne supprime pas le toast automatiquement', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useToast(), { wrapper });
+    act(() => result.current.addToast({ message: 'Permanent', type: 'info', duration: 0 }));
+    act(() => vi.advanceTimersByTime(10000));
+    expect(result.current.toasts).toHaveLength(1);
+    vi.useRealTimers();
+  });
 });
