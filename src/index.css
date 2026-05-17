@@ -1,0 +1,296 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0B1120;
+  --bg-card:  #0f1929;
+  --bg-card2: #152236;
+  --border:   rgba(255,255,255,0.08);
+  --blue:     #4F63E7;
+  --green:    #10B981;
+  --amber:    #F59E0B;
+  --red:      #EF4444;
+  --text1:    #F1F5F9;
+  --text2:    #CBD5E1;
+  --text3:    #94A3B8;
+  --text4:    #64748B;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+
+html, body, #root {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text1);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+input, select, textarea, button { font-family: inherit; }
+
+/* Input styles */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 14px 14px;
+  border-radius: 12px;
+  background: var(--bg-card2);
+  border: 1.5px solid var(--border);
+  color: var(--text1);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--blue);
+}
+.field textarea { resize: vertical; min-height: 90px; }
+
+/* Card */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+/* Btn variants */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 20px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  -webkit-appearance: none;
+}
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-success { background: var(--green); color: #fff; }
+.btn-ghost {
+  background: var(--bg-card2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Scroll area */
+.scroll-area {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-area::-webkit-scrollbar { width: 0; }
+
+/* Fade-in animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.25s ease both; }
+
+/* Checkbox custom */
+.risk-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card2);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.risk-checkbox:active { background: rgba(79,99,231,0.1); }
+.risk-checkbox.checked {
+  border-color: rgba(79,99,231,0.6);
+  background: rgba(79,99,231,0.08);
+}
+.risk-checkbox input[type="checkbox"] { display: none; }
+.check-box {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.risk-checkbox.checked .check-box {
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+/* Step indicator */
+.step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--bg-card2);
+  border: 2px solid var(--border);
+  transition: all 0.2s;
+}
+.step-dot.active {
+  width: 24px;
+  border-radius: 4px;
+  background: var(--blue);
+  border-color: var(--blue);
+}
+.step-dot.done {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+/* ── Thème clair ─────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  color-scheme: light;
+}
+[data-theme="light"] html,
+[data-theme="light"] body,
+[data-theme="light"] #root {
+  background: var(--bg);
+  color: var(--text1);
+}
+[data-theme="light"] .card {
+  box-shadow: 0 1px 4px rgba(15,23,42,0.07);
+}
+[data-theme="light"] .btn-ghost {
+  color: var(--text2);
+}
+[data-theme="light"] .field input,
+[data-theme="light"] .field select,
+[data-theme="light"] .field textarea {
+  color: var(--text1);
+  border-color: rgba(15,23,42,0.12);
+}
+[data-theme="light"] .field input::placeholder,
+[data-theme="light"] .field select::placeholder,
+[data-theme="light"] .field textarea::placeholder {
+  color: var(--text4);
+}
+[data-theme="light"] .risk-checkbox {
+  border-color: rgba(15,23,42,0.1);
+}
+[data-theme="light"] .check-box {
+  border-color: rgba(15,23,42,0.15);
+}
+
+/* Bottom nav thème clair */
+[data-theme="light"] nav {
+  background: #FFFFFF !important;
+  border-top-color: rgba(15,23,42,0.09) !important;
+}
+
+/* Swipe animation */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.slide-in-right { animation: slideInRight 0.22s ease both; }
+.slide-in-left  { animation: slideInLeft  0.22s ease both; }
+
+/* ── Thème TERRAIN (contraste maximal plein soleil) ─────────────────────── */
+[data-theme="terrain"] html,
+[data-theme="terrain"] body,
+[data-theme="terrain"] #root {
+  background: #FFFEF5;
+  color: #000000;
+}
+[data-theme="terrain"] .card {
+  border: 3px solid #000000 !important;
+  box-shadow: none;
+}
+[data-theme="terrain"] .btn {
+  min-height: 64px;
+  font-size: 16px;
+  border: 3px solid #000000;
+}
+[data-theme="terrain"] .btn-primary {
+  background: #FFCC00;
+  color: #000000;
+  border-color: #000000;
+}
+[data-theme="terrain"] .btn-success {
+  background: #FFCC00;
+  color: #000000;
+  border-color: #000000;
+}
+[data-theme="terrain"] .btn-ghost {
+  background: #ffffff;
+  color: #000000;
+  border-color: #000000;
+}
+[data-theme="terrain"] .field label {
+  font-size: 13px;
+  color: #000000;
+}
+[data-theme="terrain"] .field input,
+[data-theme="terrain"] .field select,
+[data-theme="terrain"] .field textarea {
+  border: 3px solid #000000;
+  color: #000000;
+  background: #ffffff;
+  font-size: 16px;
+}
+[data-theme="terrain"] .field input:focus,
+[data-theme="terrain"] .field select:focus,
+[data-theme="terrain"] .field textarea:focus {
+  border-color: #FFCC00;
+  outline: 3px solid #000000;
+}
+[data-theme="terrain"] .step-dot {
+  border: 3px solid #000000;
+  background: #ffffff;
+}
+[data-theme="terrain"] .step-dot.active {
+  background: #FFCC00;
+  border-color: #000000;
+}
+[data-theme="terrain"] .step-dot.done {
+  background: #000000;
+  border-color: #000000;
+}
