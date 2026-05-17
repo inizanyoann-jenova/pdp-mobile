@@ -153,7 +153,7 @@ export async function exportPdP(pdp, { returnBlob = false } = {}, settings = {})
     ['Date travaux',       pdp.date_travaux ? new Date(pdp.date_travaux+'T12:00').toLocaleDateString('fr-FR') : '—'],
     ['Responsable QHSE',  pdp.responsable || '—'],
     ['Contact urgence',    pdp.contact_urgence || '—'],
-    ['Type de travaux',    pdp.type_travaux || '—'],
+    ['Type de travaux',    (pdp.types_travaux?.length ? pdp.types_travaux.join(' + ') : null) || pdp.type_travaux || '—'],
     ["Type d'intervention", TYPES_INTERVENTION.find(t=>t.value===pdp.type_intervention)?.label?.replace(/[^\w\s éàèùâêîôûçëïüÉÀÈÙÂÊÎÔÛÇËÏÜ'.,()-]/g,'') || '—'],
     ['Intervenants',       pdp.intervenants || '—'],
   ];
@@ -189,8 +189,10 @@ export async function exportPdP(pdp, { returnBlob = false } = {}, settings = {})
   y += 10;
 
   CATEGORIES.forEach(cat => {
-    const reps     = cat.questions.map(q => reponses[q.id]);
-    const answered = reps.filter(Boolean).length;
+    const customQs  = (pdp.custom_questions?.[cat.id] || []);
+    const allQs     = [...cat.questions, ...customQs];
+    const reps      = allQs.map(q => reponses[q.id]);
+    const answered  = reps.filter(Boolean).length;
     if (answered === 0) return;
     const catOui = reps.filter(r=>r==='oui').length;
     const catNon = reps.filter(r=>r==='non').length;
@@ -204,7 +206,7 @@ export async function exportPdP(pdp, { returnBlob = false } = {}, settings = {})
     doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...catRgb);
     doc.text(cat.label.toUpperCase(), margin + 4, y + 7);
     doc.setTextColor(...C.text3); doc.setFontSize(7);
-    doc.text(`${answered}/${cat.questions.length}  ✓${catOui}  ✗${catNon}  ?${catNsp}`, margin + inner - 42, y + 7);
+    doc.text(`${answered}/${allQs.length}  ✓${catOui}  ✗${catNon}  ?${catNsp}`, margin + inner - 42, y + 7);
     y += 12;
 
     doc.setFillColor(...C.border);
@@ -215,7 +217,7 @@ export async function exportPdP(pdp, { returnBlob = false } = {}, settings = {})
     }
     y += 6;
 
-    cat.questions.forEach(q => {
+    allQs.forEach(q => {
       const rep = reponses[q.id];
       if (rep !== 'non' && rep !== 'nsp') return;
       if (y + 10 > H - 20) { newPage(doc, W, H); y = 16; }
@@ -374,7 +376,7 @@ export async function exportPdP(pdp, { returnBlob = false } = {}, settings = {})
     for (const [qId, b64] of questionPhotos) {
       let qLabel = qId;
       for (const cat of CATEGORIES) {
-        const q = cat.questions.find(q => q.id === qId);
+        const q = cat.questions.find(q => q.id === qId) || (pdp.custom_questions?.[cat.id] || []).find(q => q.id === qId);
         if (q) { qLabel = `${cat.label} — ${q.text.substring(0, 50)}`; break; }
       }
 
