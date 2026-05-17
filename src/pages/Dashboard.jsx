@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { CATEGORIES } from '../utils/risques';
-import { getLocalActionsStats } from '../utils/offlineStorage';
+import { getAllActionsStats } from '../utils/actionsService';
 import { exportPdPsCsv } from '../utils/exportCsv';
 import { useTheme } from '../contexts/ThemeContext';
 import BottomNav from '../components/BottomNav';
@@ -25,16 +25,18 @@ export default function Dashboard({ session }) {
   const { theme, toggle } = useTheme();
   const [pdps, setPdps]       = useState([]);
   const [loading, setLoading] = useState(true);
-  const actionsStats          = getLocalActionsStats();
+  const [actionsStats, setActionsStats] = useState({ todo: 0, doing: 0, done: 0, total: 0 });
 
   const charger = useCallback(async () => {
     setLoading(true);
     const { data } = await supabase
       .from('plans_prevention')
       .select('id, lieu, entreprise_exterieure, statut, niveau_risque, score_risque, reponses, created_at, date_travaux')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(0, 49);
     setLoading(false);
     setPdps(data || []);
+    getAllActionsStats().then(setActionsStats).catch(() => {});
   }, []);
 
   useEffect(() => { charger(); }, [charger]);
