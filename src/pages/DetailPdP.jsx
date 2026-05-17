@@ -12,7 +12,7 @@ import {
   CheckCircle2, Clock, Trash2, AlertTriangle, Download,
   ShieldCheck, PenLine, Copy, Share2, Plus, X,
   ClipboardCheck, ChevronDown, ChevronUp, Pencil, Mail,
-  Sun, Moon,
+  Sun, Moon, Hammer,
 } from 'lucide-react';
 
 const STATUT_CONFIG = {
@@ -30,7 +30,7 @@ const ACTION_STATUT = {
 export default function DetailPdP({ session }) {
   const { id }   = useParams();
   const navigate = useNavigate();
-  const { theme, isDark, toggle } = useTheme();
+  const { theme, toggle } = useTheme();
   const { settings } = useSettings();
   const { addToast } = useToast();
   const [pdp, setPdp]               = useState(null);
@@ -246,7 +246,7 @@ export default function DetailPdP({ session }) {
           )}
           <span style={{ fontSize:11, fontWeight:700, color:cfg.color, background:cfg.bg, border:`1px solid ${cfg.border}`, borderRadius:100, padding:'3px 9px', flexShrink:0 }}>{cfg.label}</span>
           <button onClick={toggle} style={{ ...iconBtn, background:theme.iconBg, border:`1px solid ${theme.border}`, color:theme.text3 }}>
-            {isDark ? <Sun size={15}/> : <Moon size={15}/>}
+            {theme.name === 'dark' ? <Sun size={15}/> : theme.name === 'light' ? <Hammer size={15}/> : <Moon size={15}/>}
           </button>
         </div>
       </div>

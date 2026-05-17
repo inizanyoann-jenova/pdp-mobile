@@ -10,7 +10,7 @@ import PWAInstallBanner from '../components/PWAInstallBanner';
 import {
   RefreshCw, TrendingUp, AlertTriangle, CheckCircle2, Clock,
   Archive, Shield, Target, HardHat, LogOut, MapPin,
-  ClipboardCheck, Wrench, ChevronRight, FileSpreadsheet, Sun, Moon,
+  ClipboardCheck, Wrench, ChevronRight, FileSpreadsheet, Sun, Moon, Hammer,
 } from 'lucide-react';
 
 const NIVEAU_CFG = {
@@ -22,7 +22,7 @@ const NIVEAU_CFG = {
 
 export default function Dashboard({ session }) {
   const navigate = useNavigate();
-  const { theme, isDark, toggle } = useTheme();
+  const { theme, toggle } = useTheme();
   const [pdps, setPdps]       = useState([]);
   const [loading, setLoading] = useState(true);
   const actionsStats          = getLocalActionsStats();
@@ -106,7 +106,7 @@ export default function Dashboard({ session }) {
           <div style={{ fontSize: 11, color: theme.text4 }}>Vue d'ensemble QHSE</div>
         </div>
         <button onClick={() => exportPdPsCsv(pdps)} title="Exporter CSV" style={{ ...iconBtn, background:theme.iconBg, border:`1px solid ${theme.border}`, color:theme.text3 }}><FileSpreadsheet size={15} /></button>
-        <button onClick={toggle} style={{ ...iconBtn, background:theme.iconBg, border:`1px solid ${theme.border}`, color:theme.text3 }}>{isDark ? <Sun size={15}/> : <Moon size={15}/>}</button>
+        <button onClick={toggle} style={{ ...iconBtn, background:theme.iconBg, border:`1px solid ${theme.border}`, color:theme.text3 }}>{theme.name === 'dark' ? <Sun size={15}/> : theme.name === 'light' ? <Hammer size={15}/> : <Moon size={15}/>}</button>
         <button onClick={charger} style={{ ...iconBtn, background:theme.iconBg, border:`1px solid ${theme.border}`, color:theme.text3 }}><RefreshCw size={15} /></button>
         <button onClick={() => supabase.auth.signOut()} style={{ ...iconBtn, background:theme.iconBg, border:`1px solid ${theme.border}`, color:theme.text3 }}><LogOut size={15} /></button>
       </div>

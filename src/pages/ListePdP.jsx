@@ -5,7 +5,7 @@ import { useToast } from '../contexts/ToastContext';
 import {
   HardHat, MapPin, Building2, Calendar, ChevronRight,
   LogOut, RefreshCw, AlertTriangle, CheckCircle2, Clock,
-  Search, X, WifiOff, Filter, Sun, Moon,
+  Search, X, WifiOff, Filter, Sun, Moon, Hammer,
 } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import { countDrafts, getAllDrafts } from '../utils/offlineStorage';
@@ -25,7 +25,7 @@ const LABEL_RISQUE    = { tous: 'Tout niveau', faible: 'ðŸŸ¢ Faible', modere: 'ð
 
 export default function ListePdP({ session }) {
   const navigate = useNavigate();
-  const { theme, isDark, toggle } = useTheme();
+  const { theme, toggle } = useTheme();
   const { addToast } = useToast();
   const [pdps, setPdps]             = useState([]);
   const [loading, setLoading]       = useState(true);
@@ -106,7 +106,7 @@ export default function ListePdP({ session }) {
             <div style={{ fontSize: 11, color: '#64748B' }}>{session?.user?.email?.split('@')[0]}</div>
           </div>
           <button onClick={toggle} style={{ ...iconBtn, background:theme.iconBg, border:`1px solid ${theme.border}`, color:theme.text3 }}>
-            {isDark ? <Sun size={15}/> : <Moon size={15}/>}
+            {theme.name === 'dark' ? <Sun size={15}/> : theme.name === 'light' ? <Hammer size={15}/> : <Moon size={15}/>}
           </button>
           <button onClick={charger} style={{ ...iconBtn, background:theme.iconBg, border:`1px solid ${theme.border}`, color:theme.text3 }}>
             <RefreshCw size={16} />

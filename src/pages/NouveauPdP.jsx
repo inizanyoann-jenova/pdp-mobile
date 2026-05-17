@@ -10,7 +10,7 @@ import {
   ArrowLeft, ArrowRight, Save, CheckCircle2,
   MapPin, Building2, FileText, ShieldCheck, PenLine,
   Plus, Trash2, AlertTriangle, Bookmark, BookmarkCheck,
-  ChevronDown, Sun, Moon,
+  ChevronDown, Sun, Moon, HardHat,
 } from 'lucide-react';
 import PhotoCapture from '../components/PhotoCapture';
 import AnalyseRisques from '../components/AnalyseRisques';
@@ -39,7 +39,7 @@ const EMPTY = {
 
 export default function NouveauPdP({ session, initialData, editId }) {
   const navigate      = useNavigate();
-  const { theme, isDark, toggle } = useTheme();
+  const { theme, toggle } = useTheme();
   const { addToast } = useToast();
   const [step, setStep]           = useState(0);
   const [swipeDir, setSwipeDir]   = useState('right');
@@ -258,7 +258,7 @@ export default function NouveauPdP({ session, initialData, editId }) {
             </div>
           )}
           <button onClick={toggle} style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.iconBg, color: theme.text3, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            {isDark ? <Sun size={15} /> : <Moon size={15} />}
+            {theme.name === 'dark' ? <Sun size={15} /> : theme.name === 'light' ? <HardHat size={15} /> : <Moon size={15} />}
           </button>
         </div>
         {/* Step dots */}
