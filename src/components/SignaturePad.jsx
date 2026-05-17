@@ -20,32 +20,49 @@ function getCanvasPos(e, canvas) {
 }
 
 export default function SignaturePad({ label, value, onChange }) {
-  const { theme } = useTheme();
-  const canvasRef  = useRef(null);
-  const drawing    = useRef(false);
-  const lastPos    = useRef(null);
-  const onChangRef = useRef(onChange);
-  const parsedRef  = useRef(parseValue(value));
+  const { theme }   = useTheme();
+  const canvasRef   = useRef(null);
+  const drawing     = useRef(false);
+  const lastPos     = useRef(null);
+  const onChangRef  = useRef(onChange);
+  const parsedRef   = useRef(parseValue(value));
+  const strokeColor = theme.name === 'terrain' ? '#000000' : '#1e293b';
 
-  // Keep refs in sync with props
   useEffect(() => { onChangRef.current = onChange; }, [onChange]);
-  useEffect(() => { parsedRef.current = parseValue(value); }, [value]);
+  useEffect(() => { parsedRef.current  = parseValue(value); }, [value]);
 
   const parsed = parseValue(value);
   const today  = new Date().toISOString().split('T')[0];
 
-  // Load existing signature image into canvas
-  useEffect(() => {
+  // Resize canvas to device pixel ratio for sharp signatures
+  const resizeAndRedraw = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !parsed.drawing) return;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const dpr  = window.devicePixelRatio || 1;
+    canvas.width  = Math.round(rect.width  * dpr);
+    canvas.height = Math.round(rect.height * dpr);
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const img = new window.Image();
-    img.onload = () => ctx.drawImage(img, 0, 0);
-    img.src = parsed.drawing;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    ctx.scale(dpr, dpr);
+    ctx.lineWidth = 2.5;
+    ctx.lineCap   = 'round';
+    ctx.lineJoin  = 'round';
+    // Redraw existing signature if present
+    const existing = parsedRef.current.drawing;
+    if (existing) {
+      const img = new window.Image();
+      img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height);
+      img.src = existing;
+    }
+  }, []);
 
-  // Attach non-passive touch listeners to prevent page scroll while signing
+  useEffect(() => {
+    resizeAndRedraw();
+    const ro = new ResizeObserver(resizeAndRedraw);
+    if (canvasRef.current) ro.observe(canvasRef.current);
+    return () => ro.disconnect();
+  }, [resizeAndRedraw]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -55,23 +72,18 @@ export default function SignaturePad({ label, value, onChange }) {
       drawing.current = true;
       lastPos.current = getCanvasPos(e, canvas);
     }
-
     function onTouchMove(e) {
       e.preventDefault();
       if (!drawing.current) return;
       const ctx = canvas.getContext('2d');
       const pos = getCanvasPos(e, canvas);
       ctx.beginPath();
+      ctx.strokeStyle = strokeColor;
       ctx.moveTo(lastPos.current.x, lastPos.current.y);
       ctx.lineTo(pos.x, pos.y);
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth   = 2.5;
-      ctx.lineCap     = 'round';
-      ctx.lineJoin    = 'round';
       ctx.stroke();
       lastPos.current = pos;
     }
-
     function onTouchEnd(e) {
       e.preventDefault();
       if (!drawing.current) return;
@@ -85,36 +97,29 @@ export default function SignaturePad({ label, value, onChange }) {
     canvas.addEventListener('touchstart', onTouchStart, { passive: false });
     canvas.addEventListener('touchmove',  onTouchMove,  { passive: false });
     canvas.addEventListener('touchend',   onTouchEnd,   { passive: false });
-
     return () => {
       canvas.removeEventListener('touchstart', onTouchStart);
       canvas.removeEventListener('touchmove',  onTouchMove);
       canvas.removeEventListener('touchend',   onTouchEnd);
     };
-  }, []);
+  }, [strokeColor]);
 
-  // Mouse handlers (desktop)
   function startDrawMouse(e) {
     drawing.current = true;
     lastPos.current = getCanvasPos(e, canvasRef.current);
   }
-
   function drawMouse(e) {
     if (!drawing.current) return;
     const canvas = canvasRef.current;
-    const ctx    = canvas.getContext('2d');
-    const pos    = getCanvasPos(e, canvas);
+    const ctx = canvas.getContext('2d');
+    const pos = getCanvasPos(e, canvas);
     ctx.beginPath();
+    ctx.strokeStyle = strokeColor;
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = '#1e293b';
-    ctx.lineWidth   = 2.5;
-    ctx.lineCap     = 'round';
-    ctx.lineJoin    = 'round';
     ctx.stroke();
     lastPos.current = pos;
   }
-
   function endDrawMouse() {
     if (!drawing.current) return;
     drawing.current = false;
@@ -125,7 +130,10 @@ export default function SignaturePad({ label, value, onChange }) {
 
   function clear() {
     const canvas = canvasRef.current;
-    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width * dpr, rect.height * dpr);
     onChange({ drawing: '', nom: parsed.nom, date: parsed.date });
   }
 
@@ -160,13 +168,12 @@ export default function SignaturePad({ label, value, onChange }) {
 
       <canvas
         ref={canvasRef}
-        width={800} height={200}
         onMouseDown={startDrawMouse} onMouseMove={drawMouse} onMouseUp={endDrawMouse} onMouseLeave={endDrawMouse}
         style={{
           width: '100%', height: 120, borderRadius: 12, display: 'block',
           cursor: 'crosshair', touchAction: 'none',
           background: '#ffffff',
-          border: `2px ${hasSig ? 'solid #10B981' : 'dashed rgba(255,255,255,0.2)'}`,
+          border: `2px ${hasSig ? 'solid #10B981' : 'dashed rgba(100,116,139,0.4)'}`,
         }}
       />
       {!hasSig && (
