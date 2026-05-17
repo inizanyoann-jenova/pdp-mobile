@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { saveDraftOffline, getAllDrafts, removeDraft } from '../utils/offlineStorage';
+import { saveDraft, getAllDrafts, removeDraft } from '../utils/offlineStorage';
 import { getTemplates, saveTemplate, deleteTemplate } from '../utils/templatesService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
@@ -14,7 +14,7 @@ import {
 import PhotoCapture from '../components/PhotoCapture';
 import AnalyseRisques from '../components/AnalyseRisques';
 import SignaturePad from '../components/SignaturePad';
-import { SECTEURS_CHANTIER, TYPES_INTERVENTION, ENVIRONNEMENTS_SITE, METEO_OPTIONS, calcScore, getNiveauRisque, RISQUE_COLORS } from '../utils/risques';
+import { SECTEURS_CHANTIER, TYPES_INTERVENTION, ENVIRONNEMENTS_SITE, METEO_OPTIONS, calcScore, calcScoreResiduel, getNiveauRisque, RISQUE_COLORS } from '../utils/risques';
 import { genererMesuresSuggerees } from '../utils/prevention';
 
 const STEPS = [
@@ -28,10 +28,10 @@ const STEPS = [
 const EMPTY = {
   lieu: '', entreprise_exterieure: '', date_travaux: new Date().toISOString().split('T')[0],
   responsable: '', contact_urgence: '', description_travaux: '', intervenants: '',
-  type_travaux: '', type_intervention: '', environnement: [], meteo: '', temperature: '',
+  type_travaux: '', types_travaux: [], type_intervention: '', environnement: [], meteo: '', temperature: '',
   photos: [],
-  reponses: {}, observations_questions: {}, photos_questions: {},
-  mesures_suggerees: [], mesures_prevention: '',
+  reponses: {}, observations_questions: {}, photos_questions: {}, custom_questions: {},
+  mesures_suggerees: [], mesures_prevention: '', score_residuel: null,
   signature_qhse: '', signature_responsable: '',
   statut: 'brouillon',
 };
@@ -93,7 +93,8 @@ export default function NouveauPdP({ session, initialData, editId }) {
 
   const setField = (key, val) => { setForm(f => ({ ...f, [key]: val })); setHasUnsavedChanges(true); };
 
-  const score  = useMemo(() => calcScore(form.reponses), [form.reponses]);
+  const score         = useMemo(() => calcScore(form.reponses), [form.reponses]);
+  const scoreResiduel = useMemo(() => calcScoreResiduel(score, form.mesures_suggerees), [score, form.mesures_suggerees]);
   const niveau = useMemo(() => getNiveauRisque(score), [score]);
   const nInfo  = RISQUE_COLORS[niveau];
 
@@ -178,11 +179,12 @@ export default function NouveauPdP({ session, initialData, editId }) {
       statut: finalStatut,
       created_by: session?.user?.id,
       score_risque: score, niveau_risque: niveau,
+      score_residuel: scoreResiduel,
     };
 
     // Mode hors-ligne
     if (!navigator.onLine) {
-      saveDraftOffline(payload);
+      saveDraft(payload);
       setSaving(false);
       setSaved(true);
       setHasUnsavedChanges(false);
@@ -207,7 +209,7 @@ export default function NouveauPdP({ session, initialData, editId }) {
       setSaving(false);
       if (err) {
         if (err.message?.includes('network') || err.message?.includes('fetch')) {
-          saveDraftOffline(payload);
+          saveDraft(payload);
           setSaved(true);
           setHasUnsavedChanges(false);
           addToast({ message: 'Plan sauvegardé localement (hors-ligne)', type: 'info' });
@@ -377,17 +379,35 @@ export default function NouveauPdP({ session, initialData, editId }) {
             </div>
 
             <div className="card">
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#10B981', marginBottom: 12 }}>🏗️ Type de travaux</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#10B981', marginBottom: 4 }}>🏗️ Type de travaux</div>
+              <p style={{ fontSize: 11, color: '#64748B', marginBottom: 10 }}>Sélectionnez un ou plusieurs types — les catégories de risque seront priorisées en conséquence.</p>
+              {(form.types_travaux || []).length > 0 && (
+                <div style={{ marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {(form.types_travaux || []).map(t => (
+                    <span key={t} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 12, background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#10B981', fontWeight: 600 }}>{t}</span>
+                  ))}
+                </div>
+              )}
               {SECTEURS_CHANTIER.map(sec => (
                 <div key={sec.secteur} style={{ marginBottom: 10 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 6 }}>{sec.secteur}</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {sec.types.map(t => (
-                      <button key={t} type="button" onClick={() => setField('type_travaux', t)}
-                        style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: `1.5px solid ${form.type_travaux === t ? sec.color : 'rgba(255,255,255,0.1)'}`, background: form.type_travaux === t ? sec.color + '20' : 'transparent', color: form.type_travaux === t ? sec.color : '#94A3B8', transition: 'all 0.12s' }}>
-                        {t}
-                      </button>
-                    ))}
+                    {sec.types.map(t => {
+                      const selected = (form.types_travaux || []).includes(t);
+                      return (
+                        <button key={t} type="button"
+                          onClick={() => {
+                            const cur = form.types_travaux || [];
+                            const next = selected ? cur.filter(v => v !== t) : [...cur, t];
+                            setField('types_travaux', next);
+                            // Keep legacy single field in sync with first selected
+                            setField('type_travaux', next[0] || '');
+                          }}
+                          style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: `1.5px solid ${selected ? sec.color : 'rgba(255,255,255,0.1)'}`, background: selected ? sec.color + '20' : 'transparent', color: selected ? sec.color : '#94A3B8', transition: 'all 0.12s' }}>
+                          {t}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -474,6 +494,22 @@ export default function NouveauPdP({ session, initialData, editId }) {
                 if (val) updated[qId] = val; else delete updated[qId];
                 setField('photos_questions', updated);
               }}
+              typesTravaux={form.types_travaux || []}
+              customQuestions={form.custom_questions || {}}
+              onAddCustomQuestion={(catId, text) => {
+                const id = `custom_${catId}_${Date.now()}`;
+                const prev = (form.custom_questions || {})[catId] || [];
+                setField('custom_questions', { ...(form.custom_questions || {}), [catId]: [...prev, { id, text }] });
+              }}
+              onRemoveCustomQuestion={(catId, qId) => {
+                const prev = (form.custom_questions || {})[catId] || [];
+                const updatedCQ = { ...(form.custom_questions || {}), [catId]: prev.filter(q => q.id !== qId) };
+                const { [qId]: _r, ...cleanReponses } = form.reponses;
+                const { [qId]: _o, ...cleanObs } = form.observations_questions;
+                const { [qId]: _p, ...cleanPhotos } = form.photos_questions;
+                setForm(f => ({ ...f, custom_questions: updatedCQ, reponses: cleanReponses, observations_questions: cleanObs, photos_questions: cleanPhotos }));
+                setHasUnsavedChanges(true);
+              }}
             />
           </div>
         )}
@@ -489,6 +525,17 @@ export default function NouveauPdP({ session, initialData, editId }) {
               <div style={{ fontSize: 11, color: nInfo.text, opacity: 0.7, marginTop: 4 }}>
                 {Object.values(form.reponses).filter(r=>r==='non').length} non-conformité(s) • {Object.values(form.reponses).filter(r=>r==='nsp').length} à vérifier
               </div>
+              {form.mesures_suggerees.some(m => m.selectionnee) && scoreResiduel !== score && (
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${nInfo.border}40` }}>
+                  <div style={{ fontSize: 10, color: nInfo.text, opacity: 0.7, marginBottom: 2 }}>Score résiduel (après mesures)</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: RISQUE_COLORS[getNiveauRisque(scoreResiduel)].text }}>
+                    {scoreResiduel}<span style={{ fontSize: 12, opacity: 0.6 }}>/25</span>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: RISQUE_COLORS[getNiveauRisque(scoreResiduel)].text }}>
+                    {RISQUE_COLORS[getNiveauRisque(scoreResiduel)].label}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Suggestions auto */}

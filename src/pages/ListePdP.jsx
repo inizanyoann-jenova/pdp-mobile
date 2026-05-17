@@ -8,7 +8,7 @@ import {
   Search, X, WifiOff, Filter, Sun, Moon,
 } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
-import { countDraftsOffline, getDraftsOffline } from '../utils/offlineStorage';
+import { countDrafts, getAllDrafts } from '../utils/offlineStorage';
 import { RISQUE_COLORS } from '../utils/risques';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -35,7 +35,7 @@ export default function ListePdP({ session }) {
   const [filtreRisque, setFiltreRisque] = useState('tous');
   const [showFilters, setShowFilters]   = useState(false);
   const [offline, setOffline]           = useState(!navigator.onLine);
-  const [nbOffline, setNbOffline]       = useState(countDraftsOffline());
+  const [nbOffline, setNbOffline]       = useState(countDrafts());
 
   useEffect(() => {
     const onOnline  = () => { setOffline(false); addToast({ message: 'Connexion rétablie', type: 'success' }); };
@@ -66,7 +66,7 @@ export default function ListePdP({ session }) {
   // Fusion plans en ligne + brouillons hors-ligne
   const allPdps = useMemo(() => {
     const online = pdps;
-    const offlineDrafts = Object.values(getDraftsOffline()).map(d => ({
+    const offlineDrafts = Object.values(getAllDrafts()).map(d => ({
       ...d, _offline: true,
     }));
     return [...offlineDrafts, ...online];
