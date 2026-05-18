@@ -41,7 +41,7 @@ export default function NouveauPdP({ session, initialData, editId }) {
     const dy = e.changedTouches[0].clientY - touchStart.current.y;
     touchStart.current = null;
     if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.8) return;
-    if (dx < 0 && canNext()) handleNext();
+    if (dx < 0 && canNext() && step < STEPS.length - 1) handleNext();
     if (dx > 0 && step > 0) handlePrev();
   }, [step, canNext, handleNext, handlePrev]);
 

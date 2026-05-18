@@ -69,11 +69,13 @@ export default function SignaturePad({ label, value, onChange }) {
 
     function onTouchStart(e) {
       e.preventDefault();
+      e.stopPropagation();
       drawing.current = true;
       lastPos.current = getCanvasPos(e, canvas);
     }
     function onTouchMove(e) {
       e.preventDefault();
+      e.stopPropagation();
       if (!drawing.current) return;
       const ctx = canvas.getContext('2d');
       const pos = getCanvasPos(e, canvas);
@@ -86,6 +88,7 @@ export default function SignaturePad({ label, value, onChange }) {
     }
     function onTouchEnd(e) {
       e.preventDefault();
+      e.stopPropagation();
       if (!drawing.current) return;
       drawing.current = false;
       const d    = canvas.toDataURL('image/png');
