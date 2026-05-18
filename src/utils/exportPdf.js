@@ -384,13 +384,6 @@ async function renderPage2(doc, pdp, points, ctx) {
 }
 
 // ─── Page 3 — Signatures ─────────────────────────────────────────────────────
-function parseSig(v) {
-  if (!v) return { drawing: '', nom: '', date: '' };
-  if (typeof v === 'object' && !Array.isArray(v)) return { drawing: v.drawing || '', nom: v.nom || '', date: v.date || '' };
-  try { const p = JSON.parse(v); if (p?.drawing) return { drawing: p.drawing, nom: p.nom || '', date: p.date || '' }; } catch {}
-  return { drawing: String(v), nom: '', date: '' };
-}
-
 function renderPage3(doc, pdp, ctx) {
   const { margin, inner, primaryRgb } = ctx;
   let y = 46;
@@ -407,8 +400,7 @@ function renderPage3(doc, pdp, ctx) {
   const sigW = (inner - 8) / 2;
   const sigH = 80;
 
-  function drawSigBlock(sx, sy, label, entityName, sigData) {
-    const { drawing, nom, date } = parseSig(sigData);
+  function drawSigBlock(sx, sy, label, entityName) {
     addCard(doc, sx, sy, sigW, sigH, 4);
 
     doc.setFillColor(...primaryRgb);
@@ -425,33 +417,21 @@ function renderPage3(doc, pdp, ctx) {
     doc.setFontSize(7); doc.setTextColor(...C.text3);
     doc.text('Signature :', sx + 5, sy + 25);
 
-    if (drawing) {
-      try {
-        doc.setFillColor(255, 255, 255); doc.rect(sx + 3, sy + 27, sigW - 6, 28, 'F');
-        doc.addImage(drawing, 'PNG', sx + 3, sy + 27, sigW - 6, 28);
-      } catch {
-        doc.setFillColor(...C.bg); doc.rect(sx + 3, sy + 27, sigW - 6, 28, 'F');
-        doc.setFontSize(8); doc.setTextColor(...C.text3);
-        doc.text('[ Erreur signature ]', sx + sigW / 2, sy + 43, { align: 'center' });
-      }
-    } else {
-      doc.setFillColor(...C.bg); doc.rect(sx + 3, sy + 27, sigW - 6, 28, 'F');
-      doc.setFontSize(8); doc.setTextColor(...C.text3);
-      doc.text('[ Non signé ]', sx + sigW / 2, sy + 43, { align: 'center' });
-    }
+    // Zone vide pour signature manuscrite
+    doc.setFillColor(255, 255, 255); doc.setDrawColor(...C.border); doc.setLineWidth(0.2);
+    doc.rect(sx + 3, sy + 27, sigW - 6, 28, 'FD');
 
     doc.setFontSize(7); doc.setTextColor(...C.text3);
-    if (nom) {
-      doc.text('Nom :', sx + 5, sy + 62);
-      doc.setTextColor(...C.text1); doc.text(nom.substring(0, 22), sx + 18, sy + 62);
-    }
+    doc.text('Nom :', sx + 5, sy + 62);
+    doc.setDrawColor(...C.border); doc.setLineWidth(0.3);
+    doc.line(sx + 18, sy + 62, sx + sigW - 4, sy + 62);
+
     doc.setTextColor(...C.text3); doc.text('Date :', sx + 5, sy + 70);
-    const sigDate = date || new Date().toLocaleDateString('fr-FR');
-    doc.setTextColor(...C.text1); doc.text(sigDate, sx + 18, sy + 70);
+    doc.line(sx + 18, sy + 70, sx + sigW - 4, sy + 70);
   }
 
-  drawSigBlock(margin,            y, "Donneur d'ordre / QHSE", ctx.companyName,           pdp.signature_qhse);
-  drawSigBlock(margin + sigW + 8, y, 'Responsable de site',    pdp.entreprise_exterieure, pdp.signature_responsable);
+  drawSigBlock(margin,            y, "Donneur d'ordre / QHSE", ctx.companyName);
+  drawSigBlock(margin + sigW + 8, y, 'Responsable de site',    pdp.entreprise_exterieure);
   y += sigH + 10;
 
   const { reponses, score, niveau, nLabel, nbNon, nbNsp, mesures } = ctx;

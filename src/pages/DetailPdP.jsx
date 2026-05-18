@@ -10,7 +10,7 @@ import { useToast } from '../contexts/ToastContext';
 import {
   ArrowLeft, MapPin, Building2, Calendar, FileText,
   CheckCircle2, Clock, Trash2, AlertTriangle, Download,
-  ShieldCheck, PenLine, Copy, Share2, Plus, X,
+  ShieldCheck, Copy, Share2, Plus, X,
   ClipboardCheck, ChevronDown, ChevronUp, Pencil, Mail,
   Sun, Moon, Hammer,
 } from 'lucide-react';
@@ -150,8 +150,6 @@ export default function DetailPdP({ session }) {
         created_at: undefined,
         statut: 'brouillon',
         lieu: `Copie — ${pdp.lieu || ''}`,
-        signature_qhse: null,
-        signature_responsable: null,
         created_by: session?.user?.id,
       };
       delete copy.id;
@@ -491,36 +489,6 @@ export default function DetailPdP({ session }) {
           </div>
         )}
 
-        {/* Signatures */}
-        {(pdp.signature_qhse || pdp.signature_responsable) && (
-          <div className="card fade-up">
-            <div style={{ fontSize:13, fontWeight:700, color:'#F1F5F9', marginBottom:12 }}>
-              <PenLine size={13} style={{display:'inline',marginRight:4}} />Signatures
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-              {[{label:'QHSE', sig:pdp.signature_qhse}, {label:'Resp. Site', sig:pdp.signature_responsable}].map(({label,sig}) => {
-                // Parse signature: supports old string format and new {drawing, nom, date} object
-                let drawing = '', nom = '', date = '';
-                if (sig) {
-                  if (typeof sig === 'object') { drawing = sig.drawing||''; nom = sig.nom||''; date = sig.date||''; }
-                  else { try { const p=JSON.parse(sig); if(p&&p.drawing){drawing=p.drawing;nom=p.nom||'';date=p.date||'';} else drawing=sig; } catch { drawing=sig; } }
-                }
-                return (
-                  <div key={label} style={{ background:'#152236', borderRadius:10, padding:10, border:'1px solid rgba(255,255,255,0.07)' }}>
-                    <div style={{ fontSize:11, fontWeight:700, color:'#64748B', marginBottom:6, textTransform:'uppercase' }}>{label}</div>
-                    {drawing ? (
-                      <img src={drawing} alt={`Signature ${label}`} style={{ width:'100%', height:60, objectFit:'contain', background:'#f8fafc', borderRadius:6 }} />
-                    ) : (
-                      <div style={{ height:60, display:'flex', alignItems:'center', justifyContent:'center', color:'#475569', fontSize:12 }}>Non signé</div>
-                    )}
-                    {nom && <div style={{ fontSize:11, color:'#94A3B8', marginTop:4 }}>{nom}</div>}
-                    {date && <div style={{ fontSize:10, color:'#64748B' }}>{date}</div>}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Actions statut */}
         <div className="card fade-up">

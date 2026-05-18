@@ -1,7 +1,6 @@
 import React from 'react';
-import SignaturePad from '../SignaturePad';
 
-export default function StepSignatures({ form, setField, score, nInfo, error }) {
+export default function StepSignatures({ form, score, nInfo, error }) {
   return (
     <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div className="card" style={{ textAlign: 'center', borderColor: nInfo.border, background: nInfo.bg }}>
@@ -11,14 +10,37 @@ export default function StepSignatures({ form, setField, score, nInfo, error }) 
       </div>
 
       <div className="card">
-        <p style={{ fontSize: 12, color: '#64748B', marginBottom: 14, lineHeight: 1.6 }}>
-          En signant, les deux parties reconnaissent avoir pris connaissance des risques et s'engagent à respecter les mesures de prévention.
+        <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6, marginBottom: 16 }}>
+          Les soussignés reconnaissent avoir procédé à une visite préalable du chantier, identifié les risques listés et s'engagent à faire respecter les mesures de prévention définies avant et pendant l'exécution des travaux.
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <SignaturePad label="Responsable QHSE / Donneur d'ordre" value={form.signature_qhse} onChange={val => setField('signature_qhse', val)} />
-          <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
-          <SignaturePad label="Responsable de site / Chef de chantier" value={form.signature_responsable} onChange={val => setField('signature_responsable', val)} />
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {[
+            "Responsable QHSE / Donneur d'ordre",
+            'Responsable de site / Chef de chantier',
+          ].map(label => (
+            <div key={label} style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '14px 16px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>{label}</div>
+              <div style={{ height: 56, borderRadius: 6, background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)', marginBottom: 10, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 6 }}>
+                <span style={{ fontSize: 10, color: '#475569' }}>Signature manuscrite</span>
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, color: '#64748B', marginBottom: 3 }}>Nom :</div>
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.1)' }} />
+                </div>
+                <div style={{ width: 100 }}>
+                  <div style={{ fontSize: 10, color: '#64748B', marginBottom: 3 }}>Date :</div>
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.1)' }} />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
+
+        <p style={{ fontSize: 11, color: '#475569', marginTop: 14, textAlign: 'center', lineHeight: 1.5 }}>
+          Les signatures seront apposées manuellement sur le document imprimé.
+        </p>
       </div>
 
       {error && (

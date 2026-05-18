@@ -15,7 +15,7 @@ export function exportPdPsCsv(pdps) {
     "Type d'intervention", 'Intervenants', 'Météo', 'Température (°C)',
     'Description', 'Score risque (/25)', 'Niveau de risque',
     'Nb questions répondues', 'Nb conformes', 'Nb non-conformes', 'Nb à vérifier',
-    'Nb mesures préventives', 'Nb photos', 'Nb signatures',
+    'Nb mesures préventives', 'Nb photos',
     'Date de création',
   ];
 
@@ -27,7 +27,6 @@ export function exportPdPsCsv(pdps) {
     const nbNsp    = Object.values(rep).filter(r => r === 'nsp').length;
     const mesures  = (p.mesures_suggerees || []).filter(m => m.selectionnee).length;
     const nbPhotos = Array.isArray(p.photos) ? p.photos.length : 0;
-    const nbSigs   = [p.signature_qhse, p.signature_responsable].filter(Boolean).length;
     const typeInter = TYPES_INTERVENTION.find(t => t.value === p.type_intervention)?.label || p.type_intervention || '';
 
     return [
@@ -52,7 +51,6 @@ export function exportPdPsCsv(pdps) {
       escCsv(nbNsp),
       escCsv(mesures),
       escCsv(nbPhotos),
-      escCsv(nbSigs),
       escCsv(p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : ''),
     ].join(';');
   });

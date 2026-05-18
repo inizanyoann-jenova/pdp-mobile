@@ -13,7 +13,6 @@ export const EMPTY_FORM = {
   photos: [],
   reponses: {}, observations_questions: {}, photos_questions: {}, custom_questions: {},
   mesures_suggerees: [], mesures_prevention: '', score_residuel: null,
-  signature_qhse: '', signature_responsable: '',
   statut: 'brouillon',
 };
 
@@ -74,15 +73,8 @@ export function useFormPdP({ initialData, editId, session }) {
 
   const handleSave = useCallback(async (finalStatut) => {
     setSaving(true); setError('');
-    const serializeSig = (v) => {
-      if (!v) return null;
-      if (typeof v === 'string') return v;
-      try { return JSON.stringify(v); } catch { return null; }
-    };
     const payload = {
       ...form,
-      signature_qhse:        serializeSig(form.signature_qhse),
-      signature_responsable: serializeSig(form.signature_responsable),
       statut:                finalStatut,
       created_by:            session?.user?.id,
       score_risque:          score,
