@@ -2,6 +2,34 @@
 import { jsPDF } from 'jspdf';
 import { CATEGORIES, RISQUE_COLORS, TYPES_INTERVENTION, calcScore, getNiveauRisque } from './risques';
 
+// ─── buildAttentionPoints ───────────────────────────────────────────────────
+export function buildAttentionPoints(pdp) {
+  const reponses = pdp.reponses || {};
+  const mesures  = (pdp.mesures_suggerees || []).filter(m => m.selectionnee);
+  const points   = [];
+
+  CATEGORIES.forEach(cat => {
+    const customQs = pdp.custom_questions?.[cat.id] || [];
+    const allQs    = [...cat.questions, ...customQs];
+
+    allQs.forEach(q => {
+      const rep = reponses[q.id];
+      if (rep !== 'non' && rep !== 'nsp') return;
+      const mesureObj = mesures.find(m => m.questionId === q.id);
+      points.push({
+        categoryLabel: cat.label,
+        categoryColor: cat.color,
+        questionText:  q.text,
+        reponse:       rep,
+        observation:   pdp.observations_questions?.[q.id] || null,
+        mesureText:    mesureObj?.mesure || null,
+      });
+    });
+  });
+
+  return points;
+}
+
 // Light theme colors (RGB arrays for jsPDF)
 const C = {
   white:  [255, 255, 255],
